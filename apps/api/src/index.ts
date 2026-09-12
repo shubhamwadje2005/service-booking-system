@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { FRONTEND_URL, PORT } from "./config/env";
+import { FRONTEND_URL, LIVE_URL, LOCAL_URL, PORT } from "./config/env";
 import authRoutes from "./routes/auth.routes";
 import { serviceRouter, adminServiceRouter } from "./routes/service.routes";
 import bookingRouter from "./routes/booking.routes";
@@ -13,12 +13,35 @@ import { seedAdmin } from "./seed";
 
 const app = express();
 
+// Trust reverse proxy (essential for secure cookies on Render, Railway, Fly.io)
+app.set("trust proxy", 1);
+
 // Middlewares
 app.use(cookieParser());
+
+const allowedOrigins = [
+  FRONTEND_URL,
+  LIVE_URL,
+  LOCAL_URL,
+  "http://localhost:3000",
+  "http://localhost:5000",
+].filter(Boolean) as string[];
+
 app.use(
   cors({
-    origin: FRONTEND_URL,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
   })
 );
 app.use(express.json());

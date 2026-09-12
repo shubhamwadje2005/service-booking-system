@@ -30,11 +30,14 @@ export const verifyToken = (token: string): TokenPayload | null => {
   }
 };
 
+const isProd = NODE_ENV === PRODUCTION;
+const sameSitePolicy = isProd ? "none" : "lax";
+
 export const setAuthCookie = (res: Response, token: string): void => {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: NODE_ENV === PRODUCTION,
-    sameSite: "lax",
+    secure: isProd,
+    sameSite: sameSitePolicy,
     maxAge: COOKIE_MAX_AGE_MS,
     path: "/",
   });
@@ -43,14 +46,14 @@ export const setAuthCookie = (res: Response, token: string): void => {
 export const clearAuthCookie = (res: Response): void => {
   res.clearCookie(COOKIE_NAME, {
     httpOnly: true,
-    secure: NODE_ENV === PRODUCTION,
-    sameSite: "lax",
+    secure: isProd,
+    sameSite: sameSitePolicy,
     path: "/",
   });
   res.cookie(COOKIE_NAME, "", {
     httpOnly: true,
-    secure: NODE_ENV === PRODUCTION,
-    sameSite: "lax",
+    secure: isProd,
+    sameSite: sameSitePolicy,
     expires: new Date(0),
     maxAge: 0,
     path: "/",
@@ -60,8 +63,8 @@ export const clearAuthCookie = (res: Response): void => {
 export const setAdminAuthCookie = (res: Response, token: string): void => {
   res.cookie(ADMIN_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: NODE_ENV === PRODUCTION,
-    sameSite: "lax",
+    secure: isProd,
+    sameSite: sameSitePolicy,
     maxAge: COOKIE_MAX_AGE_MS,
     path: "/",
   });
@@ -70,14 +73,14 @@ export const setAdminAuthCookie = (res: Response, token: string): void => {
 export const clearAdminAuthCookie = (res: Response): void => {
   res.clearCookie(ADMIN_COOKIE_NAME, {
     httpOnly: true,
-    secure: NODE_ENV === PRODUCTION,
-    sameSite: "lax",
+    secure: isProd,
+    sameSite: sameSitePolicy,
     path: "/",
   });
   res.cookie(ADMIN_COOKIE_NAME, "", {
     httpOnly: true,
-    secure: NODE_ENV === PRODUCTION,
-    sameSite: "lax",
+    secure: isProd,
+    sameSite: sameSitePolicy,
     expires: new Date(0),
     maxAge: 0,
     path: "/",
