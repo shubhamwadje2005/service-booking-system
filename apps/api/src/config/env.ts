@@ -5,7 +5,7 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 dotenv.config();
 
 export const JWT_KEY = process.env.JWT_KEY as string;
-export const PG_URL = process.env.PG_URL as string;
+export const PG_URL = (process.env.PG_URL || process.env.DATABASE_URL) as string;
 export const PORT = process.env.PORT as string;
 export const NODE_ENV = process.env.NODE_ENV as string;
 export const LIVE_URL = process.env.LIVE_URL as string;

@@ -46,9 +46,28 @@ app.use(
 );
 app.use(express.json());
 
-// Base Health Check
+// Health and Status Check
 app.get("/", (_req, res) => {
-  res.json({ message: "API running successfully" });
+  res.status(200).json({
+    success: true,
+    message: "Service Booking API is running",
+  });
+});
+
+app.get("/api", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Service Booking API is running",
+    version: "1.0.0",
+  });
+});
+
+app.get("/api/health", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Service Booking API is running",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Authentication Routes
@@ -90,3 +109,5 @@ if (require.main === module) {
 }
 
 export default app;
+// @ts-ignore
+module.exports = app;
