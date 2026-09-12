@@ -1,0 +1,15 @@
+{
+  "name": "@repo/types",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "description": "",
+  "types": "src/index.ts",
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
