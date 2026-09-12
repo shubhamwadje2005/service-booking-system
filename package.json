@@ -14,13 +14,7 @@
     "typescript": "7.0.2"
   },
   "engines": {
-    "node": ">=24"
-  },
-  "devEngines": {
-    "packageManager": {
-      "name": "npm",
-      "version": "11.12.1"
-    }
+    "node": ">=18.0.0"
   },
   "workspaces": [
     "apps/*",
