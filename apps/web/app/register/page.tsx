@@ -79,8 +79,7 @@ export default function RegisterPage() {
 
       if (response.success) {
         toast.success("Account created successfully! Welcome to ProService.");
-        await refetchMe();
-        router.push("/services");
+        router.replace("/services");
       }
     } catch (err: any) {
       if (err?.status === 409) {

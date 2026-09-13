@@ -17,6 +17,7 @@ import {
   AdminBookingsQueryInput,
   UpdateBookingStatusInput,
 } from "../validator/booking.validator";
+import memoryCache from "../utils/cache";
 
 /**
  * Admin: Retrieve paginated, filtered, and searchable list of all bookings.
@@ -61,40 +62,40 @@ export const getAdminBookings = async (
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    // 1. Get total count
-    const [countResult] = await db
-      .select({ total: count() })
-      .from(bookings)
-      .innerJoin(users, eq(bookings.customerId, users.id))
-      .innerJoin(services, eq(bookings.serviceId, services.id))
-      .where(whereClause);
+    // Concurrently fetch total count and paginated items
+    const [[countResult], rows] = await Promise.all([
+      db
+        .select({ total: count() })
+        .from(bookings)
+        .innerJoin(users, eq(bookings.customerId, users.id))
+        .innerJoin(services, eq(bookings.serviceId, services.id))
+        .where(whereClause),
+      db
+        .select({
+          booking: bookings,
+          customer: {
+            id: users.id,
+            name: users.name,
+            email: users.email,
+          },
+          service: {
+            id: services.id,
+            name: services.name,
+            duration: services.duration,
+            price: services.price,
+          },
+        })
+        .from(bookings)
+        .innerJoin(users, eq(bookings.customerId, users.id))
+        .innerJoin(services, eq(bookings.serviceId, services.id))
+        .where(whereClause)
+        .orderBy(desc(bookings.createdAt))
+        .limit(limit)
+        .offset((page - 1) * limit),
+    ]);
 
     const total = Number(countResult?.total || 0);
     const totalPages = Math.ceil(total / limit) || 1;
-
-    // 2. Fetch paginated records joined with customer and service
-    const rows = await db
-      .select({
-        booking: bookings,
-        customer: {
-          id: users.id,
-          name: users.name,
-          email: users.email,
-        },
-        service: {
-          id: services.id,
-          name: services.name,
-          duration: services.duration,
-          price: services.price,
-        },
-      })
-      .from(bookings)
-      .innerJoin(users, eq(bookings.customerId, users.id))
-      .innerJoin(services, eq(bookings.serviceId, services.id))
-      .where(whereClause)
-      .orderBy(desc(bookings.createdAt))
-      .limit(limit)
-      .offset((page - 1) * limit);
 
     const items = rows.map((r) =>
       formatBooking(r.booking, r.service, r.customer)
@@ -265,6 +266,8 @@ export const updateAdminBookingStatus = async (
 
       return resUpdate;
     });
+
+    memoryCache.clearPrefix("dashboard:");
 
     res.status(200).json({
       success: true,

@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useGetMeQuery, useLogoutMutation } from "../../store/apis";
+import { useGetMeQuery, useLogoutMutation, useAdminLogoutMutation } from "../../store/apis";
 import {
   User as UserIcon,
   Mail,
@@ -18,7 +18,9 @@ import { toast } from "../../components/Toast";
 export default function ProfilePage() {
   const router = useRouter();
   const { data, isLoading } = useGetMeQuery();
-  const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
+  const [logout, { isLoading: isCustomerLoggingOut }] = useLogoutMutation();
+  const [adminLogout, { isLoading: isAdminLoggingOut }] = useAdminLogoutMutation();
+  const isLoggingOut = isCustomerLoggingOut || isAdminLoggingOut;
 
   const user = data?.data;
 
@@ -30,11 +32,17 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     try {
-      await logout().unwrap();
-      toast.success("Logged out successfully");
-      window.location.href = "/login";
+      if (user?.role === "ADMIN") {
+        await adminLogout().unwrap();
+        toast.success("Admin logged out successfully");
+        window.location.href = "/admin/login";
+      } else {
+        await logout().unwrap();
+        toast.success("Logged out successfully");
+        window.location.href = "/login";
+      }
     } catch {
-      window.location.href = "/login";
+      window.location.href = user?.role === "ADMIN" ? "/admin/login" : "/login";
     }
   };
 

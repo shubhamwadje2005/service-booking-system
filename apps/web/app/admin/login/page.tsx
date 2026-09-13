@@ -55,8 +55,7 @@ export default function AdminLoginPage() {
       const response = await adminLogin(data).unwrap();
       if (response.success && response.data) {
         toast.success("Admin logged in successfully!");
-        await refetchAdminMe();
-        router.push("/admin");
+        router.replace("/admin");
       }
     } catch (err: any) {
       if (err?.status === 401) {

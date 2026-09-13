@@ -21,6 +21,7 @@ export const adminApi = createApi({
     credentials: "include",
   }),
   tagTypes: ["AdminStats", "AdminServices", "AdminBookings", "AdminBooking"],
+  keepUnusedDataFor: 300,
   endpoints: (builder) => ({
     getAdminDashboardStats: builder.query<ApiResponse<DashboardStats>, void>({
       query: () => "/dashboard/stats",
@@ -52,7 +53,7 @@ export const adminApi = createApi({
         try {
           await queryFulfilled;
           dispatch(servicesApi.util.invalidateTags(["Services", "Service"]));
-        } catch {}
+        } catch { }
       },
     }),
 
@@ -73,7 +74,7 @@ export const adminApi = createApi({
         try {
           await queryFulfilled;
           dispatch(servicesApi.util.invalidateTags(["Services", "Service"]));
-        } catch {}
+        } catch { }
       },
     }),
 
@@ -87,7 +88,7 @@ export const adminApi = createApi({
         try {
           await queryFulfilled;
           dispatch(servicesApi.util.invalidateTags(["Services", "Service"]));
-        } catch {}
+        } catch { }
       },
     }),
 
@@ -132,7 +133,7 @@ export const adminApi = createApi({
         try {
           await queryFulfilled;
           dispatch(bookingsApi.util.invalidateTags(["Bookings", "Booking"]));
-        } catch {}
+        } catch { }
       },
     }),
 

@@ -20,6 +20,7 @@ import {
   isOverlap,
   isPastTimeToday,
 } from "../utils/time";
+import memoryCache from "../utils/cache";
 
 /**
  * Normalizes a database booking row into the shared domain Booking interface.
@@ -83,11 +84,20 @@ export const createBooking = async (
         sql`SELECT pg_advisory_xact_lock(hashtext(${serviceId} || ${bookingDate}));`
       );
 
-      // 2. Fetch service from PostgreSQL
-      const [service] = await tx
-        .select()
-        .from(services)
-        .where(eq(services.id, serviceId));
+      // 2. Concurrently fetch service and existing bookings from PostgreSQL
+      const [[service], existingBookings] = await Promise.all([
+        tx.select().from(services).where(eq(services.id, serviceId)),
+        tx
+          .select()
+          .from(bookings)
+          .where(
+            and(
+              eq(bookings.serviceId, serviceId),
+              eq(bookings.bookingDate, bookingDate),
+              ne(bookings.status, "CANCELLED")
+            )
+          ),
+      ]);
 
       if (!service || !service.isActive) {
         throw new NotFoundError("Service not found or is currently inactive");
@@ -111,19 +121,7 @@ export const createBooking = async (
         throw new BadRequestError("Cannot book a time slot in the past");
       }
 
-      // 6. Query existing active bookings for this service on this date (PENDING, CONFIRMED, COMPLETED)
-      const existingBookings = await tx
-        .select()
-        .from(bookings)
-        .where(
-          and(
-            eq(bookings.serviceId, serviceId),
-            eq(bookings.bookingDate, bookingDate),
-            ne(bookings.status, "CANCELLED")
-          )
-        );
-
-      // 7. Detect collision: newStart < existingEnd AND newEnd > existingStart
+      // 6. Detect collision: newStart < existingEnd AND newEnd > existingStart
       const hasConflict = existingBookings.some((b) =>
         isOverlap(startTime, endTime, b.startTime, b.endTime)
       );
@@ -152,6 +150,8 @@ export const createBooking = async (
 
       return { booking: created, service };
     });
+
+    memoryCache.clearPrefix("dashboard:");
 
     res.status(201).json({
       success: true,
@@ -294,6 +294,8 @@ export const cancelBooking = async (
     if (!updated) {
       throw new AppError("Failed to cancel booking", 500);
     }
+
+    memoryCache.clearPrefix("dashboard:");
 
     res.status(200).json({
       success: true,

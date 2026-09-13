@@ -9,6 +9,7 @@ import {
 } from "../../../store/apis";
 import { Booking, BookingStatus } from "@repo/types";
 import { toast } from "../../../components/Toast";
+import { useDebounce } from "../../../hooks/useDebounce";
 import {
   Search,
   Calendar,
@@ -96,22 +97,20 @@ export default function AdminBookingsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [search, setSearch] = useState<string>("");
+  const debouncedSearch = useDebounce(search.trim(), 300);
 
   const {
     data: bookingsData,
     isLoading: isBookingsLoading,
     isError,
     refetch,
-  } = useGetAdminBookingsQuery(
-    {
-      page,
-      limit,
-      status: statusFilter ? (statusFilter as BookingStatus) : undefined,
-      date: dateFilter || undefined,
-      search: search.trim() || undefined,
-    },
-    { skip: !isAdmin }
-  );
+  } = useGetAdminBookingsQuery({
+    page,
+    limit,
+    status: statusFilter ? (statusFilter as BookingStatus) : undefined,
+    date: dateFilter || undefined,
+    search: debouncedSearch || undefined,
+  });
 
   const [updateStatus, { isLoading: isUpdating }] = useUpdateAdminBookingStatusMutation();
 

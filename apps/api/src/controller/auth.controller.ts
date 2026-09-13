@@ -141,6 +141,7 @@ export const logout = async (
   res: Response<ApiResponse<void>>
 ): Promise<void> => {
   clearAuthCookie(res);
+  clearAdminAuthCookie(res);
   res.status(200).json({
     success: true,
     message: "Logged out successfully.",
@@ -236,6 +237,7 @@ export const adminLogout = async (
   res: Response<ApiResponse<void>>
 ): Promise<void> => {
   clearAdminAuthCookie(res);
+  clearAuthCookie(res);
   res.status(200).json({
     success: true,
     message: "Admin logged out successfully.",

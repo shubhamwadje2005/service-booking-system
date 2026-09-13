@@ -14,6 +14,7 @@ import {
 } from "../../../store/apis";
 import { Service, BookingStatus } from "@repo/types";
 import { toast } from "../../../components/Toast";
+import { useDebounce } from "../../../hooks/useDebounce";
 import {
   Search,
   Plus,
@@ -425,6 +426,7 @@ export default function AdminServicesPage() {
   const isAdmin = currentUser?.role === "ADMIN";
 
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search.trim(), 300);
   const [filterActive, setFilterActive] = useState<string>("");
 
   const {
@@ -432,13 +434,10 @@ export default function AdminServicesPage() {
     isLoading: isServicesLoading,
     isError,
     refetch,
-  } = useGetAdminServicesQuery(
-    {
-      search: search.trim() || undefined,
-      active: filterActive || undefined,
-    },
-    { skip: !isAdmin }
-  );
+  } = useGetAdminServicesQuery({
+    search: debouncedSearch || undefined,
+    active: filterActive || undefined,
+  });
 
   const [createService, { isLoading: isCreating }] = useCreateServiceMutation();
   const [updateService, { isLoading: isUpdating }] = useUpdateServiceMutation();
@@ -544,7 +543,6 @@ export default function AdminServicesPage() {
         toast.success(`Service "${data.name}" created successfully!`);
         setIsCreateOpen(false);
         createForm.reset();
-        refetch();
       }
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to create service.");
@@ -570,7 +568,6 @@ export default function AdminServicesPage() {
       if (res.success) {
         toast.success(`Service "${data.name}" updated successfully!`);
         setEditingService(null);
-        refetch();
       }
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to update service.");
@@ -591,7 +588,6 @@ export default function AdminServicesPage() {
             ? `"${service.name}" is now active and bookable.`
             : `"${service.name}" is now deactivated.`
         );
-        refetch();
       }
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to update service active status.");
@@ -605,7 +601,6 @@ export default function AdminServicesPage() {
       if (res.success) {
         toast.success(`Service "${deletingService.name}" deactivated successfully.`);
         setDeletingService(null);
-        refetch();
       }
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to delete service.");

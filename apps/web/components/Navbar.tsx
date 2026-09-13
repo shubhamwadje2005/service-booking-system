@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useGetMeQuery, useLogoutMutation } from "../store/apis";
+import { useGetMeQuery, useLogoutMutation, useAdminLogoutMutation } from "../store/apis";
 import {
   Menu,
   X,
@@ -17,7 +17,9 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { data: userData, isLoading } = useGetMeQuery();
-  const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
+  const [logout, { isLoading: isCustomerLoggingOut }] = useLogoutMutation();
+  const [adminLogout, { isLoading: isAdminLoggingOut }] = useAdminLogoutMutation();
+  const isLoggingOut = isCustomerLoggingOut || isAdminLoggingOut;
 
   const user = userData?.data;
   const isAuthenticated = !!user;
@@ -57,13 +59,20 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await logout().unwrap();
-      setMobileMenuOpen(false);
-      toast.success("Logged out successfully");
-      window.location.href = "/login";
+      if (isAdmin) {
+        await adminLogout().unwrap();
+        setMobileMenuOpen(false);
+        toast.success("Admin logged out successfully");
+        window.location.href = "/admin/login";
+      } else {
+        await logout().unwrap();
+        setMobileMenuOpen(false);
+        toast.success("Logged out successfully");
+        window.location.href = "/login";
+      }
     } catch {
       setMobileMenuOpen(false);
-      window.location.href = "/login";
+      window.location.href = isAdmin ? "/admin/login" : "/login";
     }
   };
 

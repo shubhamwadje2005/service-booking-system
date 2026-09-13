@@ -179,7 +179,7 @@ export default function AdminDashboardPage() {
     isLoading: isStatsLoading,
     isError,
     refetch,
-  } = useGetAdminDashboardStatsQuery(undefined, { skip: !isAdmin });
+  } = useGetAdminDashboardStatsQuery();
 
   const stats = statsData?.data;
 

@@ -15,6 +15,13 @@ import {
   isOverlap,
   isPastTimeToday,
 } from "../utils/time";
+import memoryCache from "../utils/cache";
+
+const invalidateServiceCaches = () => {
+  memoryCache.clearPrefix("services:");
+  memoryCache.clearPrefix("service:");
+  memoryCache.clearPrefix("dashboard:");
+};
 
 /**
  * Normalizes a database service record to the shared Service domain type.
@@ -54,6 +61,18 @@ export const getServices = async (
 ): Promise<void> => {
   try {
     const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
+    const cacheKey = `services:public:${search || "all"}`;
+
+    const cached = memoryCache.get<Service[]>(cacheKey);
+    if (cached) {
+      res.setHeader("Cache-Control", "public, max-age=15, stale-while-revalidate=60");
+      res.status(200).json({
+        success: true,
+        message: "Services retrieved successfully",
+        data: cached,
+      });
+      return;
+    }
 
     const conditions: SQL[] = [eq(services.isActive, true)];
 
@@ -75,7 +94,9 @@ export const getServices = async (
       .orderBy(desc(services.createdAt));
 
     const formatted = rows.map(formatService);
+    memoryCache.set(cacheKey, formatted, 60);
 
+    res.setHeader("Cache-Control", "public, max-age=15, stale-while-revalidate=60");
     res.status(200).json({
       success: true,
       message: "Services retrieved successfully",
@@ -98,6 +119,18 @@ export const getServiceById = async (
 ): Promise<void> => {
   try {
     const id = String(req.params.id);
+    const cacheKey = `service:public:${id}`;
+
+    const cached = memoryCache.get<Service>(cacheKey);
+    if (cached) {
+      res.setHeader("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
+      res.status(200).json({
+        success: true,
+        message: "Service retrieved successfully",
+        data: cached,
+      });
+      return;
+    }
 
     const [row] = await db
       .select()
@@ -108,10 +141,14 @@ export const getServiceById = async (
       throw new NotFoundError("Service not found");
     }
 
+    const formatted = formatService(row);
+    memoryCache.set(cacheKey, formatted, 60);
+
+    res.setHeader("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
     res.status(200).json({
       success: true,
       message: "Service retrieved successfully",
-      data: formatService(row),
+      data: formatted,
     });
   } catch (error) {
     next(error);
@@ -130,6 +167,17 @@ export const getAdminServices = async (
   try {
     const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
     const active = typeof req.query.active === "string" ? req.query.active.trim() : "";
+    const cacheKey = `services:admin:${search || "all"}:${active || "all"}`;
+
+    const cached = memoryCache.get<Service[]>(cacheKey);
+    if (cached) {
+      res.status(200).json({
+        success: true,
+        message: "Admin services retrieved successfully",
+        data: cached,
+      });
+      return;
+    }
 
     const conditions: SQL[] = [];
 
@@ -155,6 +203,7 @@ export const getAdminServices = async (
       : await db.select().from(services).orderBy(desc(services.createdAt));
 
     const formatted = rows.map(formatService);
+    memoryCache.set(cacheKey, formatted, 30);
 
     res.status(200).json({
       success: true,
@@ -198,6 +247,8 @@ export const createService = async (
     if (!created) {
       throw new AppError("Failed to create service", 500);
     }
+
+    invalidateServiceCaches();
 
     res.status(201).json({
       success: true,
@@ -279,6 +330,8 @@ export const updateService = async (
       throw new AppError("Failed to update service", 500);
     }
 
+    invalidateServiceCaches();
+
     res.status(200).json({
       success: true,
       message: "Service updated successfully",
@@ -334,6 +387,8 @@ export const deleteService = async (
       throw new AppError("Failed to deactivate service", 500);
     }
 
+    invalidateServiceCaches();
+
     res.status(200).json({
       success: true,
       message: "Service deactivated successfully",
@@ -357,27 +412,23 @@ export const getServiceAvailability = async (
     const id = String(req.params.id);
     const date = String(req.query.date);
 
-    // Fetch active service
-    const [service] = await db
-      .select()
-      .from(services)
-      .where(eq(services.id, id));
-
-    if (!service || !service.isActive) {
-      throw new NotFoundError("Service not found or is currently inactive");
-    }
-
-    // Query all existing non-cancelled bookings for this service on the requested date
-    const existingBookings = await db
-      .select()
-      .from(bookings)
-      .where(
+    // Fetch active service and existing bookings concurrently
+    const [serviceResult, existingBookings] = await Promise.all([
+      db.select().from(services).where(eq(services.id, id)),
+      db.select().from(bookings).where(
         and(
           eq(bookings.serviceId, id),
           eq(bookings.bookingDate, date),
           ne(bookings.status, "CANCELLED")
         )
-      );
+      ),
+    ]);
+
+    const service = serviceResult[0];
+
+    if (!service || !service.isActive) {
+      throw new NotFoundError("Service not found or is currently inactive");
+    }
 
     // Parse custom slots if configured by admin
     let activeSlotStarts: string[] = [];

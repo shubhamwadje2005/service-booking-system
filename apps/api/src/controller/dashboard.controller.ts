@@ -1,14 +1,16 @@
 import { Request, Response, NextFunction } from "express";
-import { eq, inArray, desc, count, sum, sql, gte } from "drizzle-orm";
+import { eq, desc, count, sql } from "drizzle-orm";
 import db from "../config/db";
 import { bookings } from "../model/bookings";
 import { users } from "../model/users";
 import { services } from "../model/services";
 import { DashboardStats } from "@repo/types";
 import { formatBooking } from "./booking.controller";
+import memoryCache from "../utils/cache";
 
 /**
  * Admin: Retrieve consolidated business analytics and metrics.
+ * Highly optimized with single aggregate SQL query and in-memory caching.
  * GET /api/admin/dashboard/stats
  */
 export const getDashboardStats = async (
@@ -17,96 +19,81 @@ export const getDashboardStats = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const cacheKey = "dashboard:stats";
+    const cached = memoryCache.get<DashboardStats>(cacheKey);
+    if (cached) {
+      res.status(200).json({
+        success: true,
+        message: "Dashboard statistics retrieved successfully",
+        data: cached,
+      });
+      return;
+    }
+
     const todayStr = new Date().toISOString().slice(0, 10);
 
-    // 1. Booking counts by status
-    const [totalBookingsRes] = await db.select({ val: count() }).from(bookings);
-    const [pendingRes] = await db
-      .select({ val: count() })
-      .from(bookings)
-      .where(eq(bookings.status, "PENDING"));
-    const [confirmedRes] = await db
-      .select({ val: count() })
-      .from(bookings)
-      .where(eq(bookings.status, "CONFIRMED"));
-    const [completedRes] = await db
-      .select({ val: count() })
-      .from(bookings)
-      .where(eq(bookings.status, "COMPLETED"));
-    const [cancelledRes] = await db
-      .select({ val: count() })
-      .from(bookings)
-      .where(eq(bookings.status, "CANCELLED"));
+    // Parallel execution of condensed aggregate query and auxiliary lookups
+    const [bookingStatsRes, customersRes, activeServicesRes, recentRows] = await Promise.all([
+      db.execute(sql`
+        SELECT
+          count(*)::int AS total_bookings,
+          count(*) FILTER (WHERE status = 'PENDING')::int AS pending_bookings,
+          count(*) FILTER (WHERE status = 'CONFIRMED')::int AS confirmed_bookings,
+          count(*) FILTER (WHERE status = 'COMPLETED')::int AS completed_bookings,
+          count(*) FILTER (WHERE status = 'CANCELLED')::int AS cancelled_bookings,
+          coalesce(sum(amount) FILTER (WHERE status = 'COMPLETED'), 0)::numeric AS total_revenue,
+          count(*) FILTER (WHERE booking_date = ${todayStr})::int AS today_bookings,
+          count(*) FILTER (WHERE booking_date >= ${todayStr} AND status IN ('PENDING', 'CONFIRMED'))::int AS upcoming_bookings
+        FROM bookings
+      `),
+      db.select({ val: count() }).from(users).where(eq(users.role, "CUSTOMER")),
+      db.select({ val: count() }).from(services).where(eq(services.isActive, true)),
+      db
+        .select({
+          booking: bookings,
+          customer: {
+            id: users.id,
+            name: users.name,
+            email: users.email,
+          },
+          service: {
+            id: services.id,
+            name: services.name,
+            duration: services.duration,
+            price: services.price,
+          },
+        })
+        .from(bookings)
+        .innerJoin(users, eq(bookings.customerId, users.id))
+        .innerJoin(services, eq(bookings.serviceId, services.id))
+        .orderBy(desc(bookings.createdAt))
+        .limit(5),
+    ]);
 
-    // 2. Customers and Active Services counts
-    const [customersRes] = await db
-      .select({ val: count() })
-      .from(users)
-      .where(eq(users.role, "CUSTOMER"));
-
-    const [activeServicesRes] = await db
-      .select({ val: count() })
-      .from(services)
-      .where(eq(services.isActive, true));
-
-    // 3. Realized Revenue from COMPLETED bookings directly from DB
-    const [revenueRes] = await db
-      .select({ val: sum(bookings.amount) })
-      .from(bookings)
-      .where(eq(bookings.status, "COMPLETED"));
-
-    // 4. Today's Bookings and Upcoming Bookings
-    const [todayRes] = await db
-      .select({ val: count() })
-      .from(bookings)
-      .where(eq(bookings.bookingDate, todayStr));
-
-    const [upcomingRes] = await db
-      .select({ val: count() })
-      .from(bookings)
-      .where(
-        sql`${bookings.bookingDate} >= ${todayStr} AND ${bookings.status} IN ('PENDING', 'CONFIRMED')`
-      );
-
-    // 5. Recent 5 bookings
-    const recentRows = await db
-      .select({
-        booking: bookings,
-        customer: {
-          id: users.id,
-          name: users.name,
-          email: users.email,
-        },
-        service: {
-          id: services.id,
-          name: services.name,
-          duration: services.duration,
-          price: services.price,
-        },
-      })
-      .from(bookings)
-      .innerJoin(users, eq(bookings.customerId, users.id))
-      .innerJoin(services, eq(bookings.serviceId, services.id))
-      .orderBy(desc(bookings.createdAt))
-      .limit(5);
+    const bookingAgg: any = (bookingStatsRes as any).rows?.[0] || (bookingStatsRes as any)[0] || {};
+    const [customerCount] = customersRes;
+    const [activeServicesCount] = activeServicesRes;
 
     const recentBookings = recentRows.map((r) =>
       formatBooking(r.booking, r.service, r.customer)
     );
 
     const stats: DashboardStats = {
-      totalBookings: Number(totalBookingsRes?.val || 0),
-      pendingBookings: Number(pendingRes?.val || 0),
-      confirmedBookings: Number(confirmedRes?.val || 0),
-      completedBookings: Number(completedRes?.val || 0),
-      cancelledBookings: Number(cancelledRes?.val || 0),
-      totalCustomers: Number(customersRes?.val || 0),
-      activeServices: Number(activeServicesRes?.val || 0),
-      totalRevenue: Number(revenueRes?.val || 0),
-      todayBookings: Number(todayRes?.val || 0),
-      upcomingBookings: Number(upcomingRes?.val || 0),
+      totalBookings: Number(bookingAgg.total_bookings || 0),
+      pendingBookings: Number(bookingAgg.pending_bookings || 0),
+      confirmedBookings: Number(bookingAgg.confirmed_bookings || 0),
+      completedBookings: Number(bookingAgg.completed_bookings || 0),
+      cancelledBookings: Number(bookingAgg.cancelled_bookings || 0),
+      totalCustomers: Number(customerCount?.val || 0),
+      activeServices: Number(activeServicesCount?.val || 0),
+      totalRevenue: Number(bookingAgg.total_revenue || 0),
+      todayBookings: Number(bookingAgg.today_bookings || 0),
+      upcomingBookings: Number(bookingAgg.upcoming_bookings || 0),
       recentBookings,
     };
+
+    // Cache stats for 15 seconds to eliminate repetitive load
+    memoryCache.set(cacheKey, stats, 15);
 
     res.status(200).json({
       success: true,

@@ -36,7 +36,30 @@ export const authApi = createApi({
         method: "POST",
         body: userdata,
       }),
-      invalidatesTags: ["Auth"],
+      invalidatesTags: ["Auth", "AdminAuth"],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          if (data.success && data.data) {
+            dispatch(
+              authApi.util.updateQueryData("getMe", undefined, () => ({
+                success: true,
+                message: "Authenticated",
+                data: data.data,
+              }))
+            );
+            if (data.data.role === "ADMIN") {
+              dispatch(
+                authApi.util.updateQueryData("getAdminMe", undefined, () => ({
+                  success: true,
+                  message: "Admin authenticated",
+                  data: data.data,
+                }))
+              );
+            }
+          }
+        } catch { }
+      },
     }),
 
     signup: builder.mutation<REGISTER_RESPONSE, REGISTER_REQUEST>({
@@ -55,6 +78,20 @@ export const authApi = createApi({
         body: userdata,
       }),
       invalidatesTags: ["Auth"],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          if (data.success && data.data) {
+            dispatch(
+              authApi.util.updateQueryData("getMe", undefined, () => ({
+                success: true,
+                message: "Authenticated",
+                data: data.data,
+              }))
+            );
+          }
+        } catch { }
+      },
     }),
 
     signout: builder.mutation<LOGOUT_RESPONSE, LOGOUT_REQUEST>({
@@ -70,7 +107,7 @@ export const authApi = createApi({
         url: "/logout",
         method: "POST",
       }),
-      invalidatesTags: ["Auth"],
+      invalidatesTags: ["Auth", "AdminAuth"],
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
@@ -78,6 +115,13 @@ export const authApi = createApi({
             authApi.util.updateQueryData("getMe", undefined, () => ({
               success: false,
               message: "Logged out",
+              data: undefined,
+            }))
+          );
+          dispatch(
+            authApi.util.updateQueryData("getAdminMe", undefined, () => ({
+              success: false,
+              message: "Admin logged out",
               data: undefined,
             }))
           );
@@ -98,7 +142,28 @@ export const authApi = createApi({
         method: "POST",
         body: userdata,
       }),
-      invalidatesTags: ["AdminAuth"],
+      invalidatesTags: ["AdminAuth", "Auth"],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          if (data.success && data.data) {
+            dispatch(
+              authApi.util.updateQueryData("getAdminMe", undefined, () => ({
+                success: true,
+                message: "Admin authenticated",
+                data: data.data,
+              }))
+            );
+            dispatch(
+              authApi.util.updateQueryData("getMe", undefined, () => ({
+                success: true,
+                message: "Admin authenticated",
+                data: data.data,
+              }))
+            );
+          }
+        } catch { }
+      },
     }),
 
     adminLogout: builder.mutation<LOGOUT_RESPONSE, LOGOUT_REQUEST | void>({
@@ -106,12 +171,19 @@ export const authApi = createApi({
         url: "/admin/logout",
         method: "POST",
       }),
-      invalidatesTags: ["AdminAuth"],
+      invalidatesTags: ["AdminAuth", "Auth"],
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
           dispatch(
             authApi.util.updateQueryData("getAdminMe", undefined, () => ({
+              success: false,
+              message: "Admin logged out",
+              data: undefined,
+            }))
+          );
+          dispatch(
+            authApi.util.updateQueryData("getMe", undefined, () => ({
               success: false,
               message: "Admin logged out",
               data: undefined,

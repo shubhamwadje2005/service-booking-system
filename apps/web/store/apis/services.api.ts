@@ -13,6 +13,7 @@ export const servicesApi = createApi({
     credentials: "include",
   }),
   tagTypes: ["Services", "Service", "Availability"],
+  keepUnusedDataFor: 300,
   endpoints: (builder) => ({
     getServices: builder.query<ApiResponse<Service[]>, { search?: string } | void>({
       query: (params) => {

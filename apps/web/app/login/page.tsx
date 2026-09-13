@@ -73,13 +73,12 @@ function LoginForm() {
       const response = await login(data).unwrap();
       if (response.success && response.data) {
         toast.success(`Welcome back, ${response.data.name}!`);
-        await refetchMe();
         if (response.data.role === "ADMIN") {
-          router.push("/admin");
+          router.replace("/admin");
         } else if (redirectUrl) {
-          router.push(redirectUrl);
+          router.replace(redirectUrl);
         } else {
-          router.push("/services");
+          router.replace("/services");
         }
       }
     } catch (err: any) {

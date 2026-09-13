@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useGetServicesQuery } from "../../store/apis";
 import { Service } from "@repo/types";
 import { Search, X, ChevronRight, Clock, ArrowRight, AlertTriangle, RefreshCw } from "../../components/Icons";
+import { useDebounce } from "../../hooks/useDebounce";
 
 // Curated high quality service fallback images based on keywords
 const getFallbackImage = (name: string) => {
@@ -212,11 +213,12 @@ function ServiceCatalogSkeleton({ count = 6 }: { count?: number }) {
 
 export default function ServicesCatalogPage() {
   const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput.trim(), 300);
   const [selectedDuration, setSelectedDuration] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<string>("default");
 
   const { data, isLoading, isError, refetch } = useGetServicesQuery({
-    search: searchInput.trim() || undefined,
+    search: debouncedSearch || undefined,
   });
 
   const rawServices = data?.data || [];
