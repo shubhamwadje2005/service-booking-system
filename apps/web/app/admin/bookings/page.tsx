@@ -242,7 +242,7 @@ export default function AdminBookingsPage() {
         }}
       >
         {/* Search by Customer / Email */}
-        <div style={{ position: "relative", flex: 1, minWidth: "220px" }}>
+        <div style={{ position: "relative", flex: 1, minWidth: "min(100%, 200px)" }}>
           <div
             style={{
               position: "absolute",
@@ -918,23 +918,6 @@ export default function AdminBookingsPage() {
           </div>
         </div>
       )}
-
-      <style jsx global>{`
-        .desktop-admin-table {
-          display: block;
-        }
-        .mobile-admin-cards {
-          display: none !important;
-        }
-        @media (max-width: 900px) {
-          .desktop-admin-table {
-            display: none !important;
-          }
-          .mobile-admin-cards {
-            display: flex !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

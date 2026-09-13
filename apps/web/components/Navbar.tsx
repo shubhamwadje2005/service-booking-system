@@ -23,6 +23,19 @@ export default function Navbar() {
   const isAuthenticated = !!user;
   const isAdmin = user?.role === "ADMIN";
 
+  // Close mobile drawer automatically when route/pathname changes or back button is pressed
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setMobileMenuOpen(false);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   // Handle Escape key & body scroll lock
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

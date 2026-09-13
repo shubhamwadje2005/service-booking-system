@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { APP_URL } from "../../config/env";
 import { bookingsApi } from "./bookings.api";
+import { servicesApi } from "./services.api";
 import {
   Service,
   CreateServiceDto,
@@ -47,6 +48,12 @@ export const adminApi = createApi({
         body,
       }),
       invalidatesTags: ["AdminServices", "AdminStats"],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(servicesApi.util.invalidateTags(["Services", "Service"]));
+        } catch {}
+      },
     }),
 
     updateService: builder.mutation<
@@ -62,6 +69,12 @@ export const adminApi = createApi({
         "AdminServices",
         "AdminStats",
       ],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(servicesApi.util.invalidateTags(["Services", "Service"]));
+        } catch {}
+      },
     }),
 
     deleteService: builder.mutation<ApiResponse<Service>, string>({
@@ -70,6 +83,12 @@ export const adminApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["AdminServices", "AdminStats"],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(servicesApi.util.invalidateTags(["Services", "Service"]));
+        } catch {}
+      },
     }),
 
     getAdminBookings: builder.query<

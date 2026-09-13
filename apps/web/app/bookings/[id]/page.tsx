@@ -294,8 +294,8 @@ export default function BookingDetailsPage({ params }: PageProps) {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(3, 1fr)",
-                    gap: "1rem",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 140px), 1fr))",
+                    gap: "1.25rem",
                     position: "relative",
                   }}
                 >
@@ -342,7 +342,7 @@ export default function BookingDetailsPage({ params }: PageProps) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
               gap: "1.5rem",
             }}
           >

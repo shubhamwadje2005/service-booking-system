@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useGetServicesQuery, useGetMeQuery } from "../store/apis";
 import { Service } from "@repo/types";
@@ -182,22 +182,20 @@ export default function HomePage() {
   const isAuthenticated = !!currentUser;
   const isAdmin = currentUser?.role === "ADMIN";
 
-  // Display top 3 or 4 services from real backend data
-  const services = servicesData?.data?.filter((s) => s.isActive)?.slice(0, 4) || [];
+  // Display latest active services from real backend data (newest first)
+  const allActiveServices = useMemo(() => {
+    return [...(servicesData?.data || [])]
+      .filter((s) => s.isActive)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [servicesData?.data]);
+
+  const services = allActiveServices.slice(0, 4);
+  const latestService = allActiveServices[0];
 
   return (
-    <div className="container" style={{ display: "flex", flexDirection: "column", gap: "5rem" }}>
+    <div className="container" style={{ display: "flex", flexDirection: "column", gap: "clamp(3rem, 6vw, 5rem)" }}>
       {/* 1. HERO SECTION */}
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          alignItems: "center",
-          gap: "3.5rem",
-          paddingTop: "2rem",
-          paddingBottom: "1.5rem",
-        }}
-      >
+      <section className="hero-grid">
         {/* Left: Messaging & CTAs */}
         <div style={{ maxWidth: "600px" }}>
           {/* Eyebrow */}
@@ -350,14 +348,14 @@ export default function HomePage() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <h4 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a" }}>
-                    {(servicesData?.data?.find((s) => s.isActive && !s.name.toLowerCase().includes("test"))?.name) || "Professional Home Deep Cleaning"}
+                    {latestService?.name || "Professional Home Deep Cleaning"}
                   </h4>
                   <p style={{ fontSize: "0.82rem", color: "#64748b", margin: "0.2rem 0 0" }}>
-                    Duration: {(servicesData?.data?.find((s) => s.isActive && !s.name.toLowerCase().includes("test"))?.duration) || 120} mins • Certified Specialist
+                    Duration: {latestService?.duration || 120} mins • Certified Specialist
                   </p>
                 </div>
                 <span style={{ fontSize: "1.2rem", fontWeight: 800, color: "#0f172a" }}>
-                  ₹{(servicesData?.data?.find((s) => s.isActive && !s.name.toLowerCase().includes("test"))?.price) ? Number(servicesData.data.find((s) => s.isActive && !s.name.toLowerCase().includes("test"))!.price).toFixed(0) : "1200"}
+                  ₹{latestService?.price != null ? Number(latestService.price).toFixed(0) : "1200"}
                 </span>
               </div>
             </div>
@@ -367,7 +365,7 @@ export default function HomePage() {
               <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#64748b", marginBottom: "0.5rem" }}>
                 AVAILABLE TIME SLOTS
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 80px), 1fr))", gap: "0.5rem" }}>
                 <div
                   style={{
                     padding: "0.5rem",
@@ -437,18 +435,7 @@ export default function HomePage() {
       </section>
 
       {/* 2. TRUST ASSURANCE BAR */}
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "1.5rem",
-          padding: "2rem",
-          backgroundColor: "#ffffff",
-          border: "1px solid #e2e8f0",
-          borderRadius: "14px",
-          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
-        }}
-      >
+      <section className="trust-bar-grid">
         <div style={{ display: "flex", alignItems: "flex-start", gap: "0.85rem" }}>
           <div style={{ padding: "0.5rem", borderRadius: "8px", backgroundColor: "#eff6ff", color: "#2563eb" }}>
             <Shield size={20} />
@@ -591,7 +578,7 @@ export default function HomePage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
               gap: "1.5rem",
             }}
           >
@@ -616,23 +603,9 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "2rem",
-          }}
-        >
+        <div className="steps-grid">
           {/* Step 1 */}
-          <div
-            style={{
-              backgroundColor: "#ffffff",
-              border: "1px solid #e2e8f0",
-              borderRadius: "14px",
-              padding: "2rem",
-              position: "relative",
-            }}
-          >
+          <div className="step-card">
             <div
               style={{
                 width: "42px",
@@ -659,15 +632,7 @@ export default function HomePage() {
           </div>
 
           {/* Step 2 */}
-          <div
-            style={{
-              backgroundColor: "#ffffff",
-              border: "1px solid #e2e8f0",
-              borderRadius: "14px",
-              padding: "2rem",
-              position: "relative",
-            }}
-          >
+          <div className="step-card">
             <div
               style={{
                 width: "42px",
@@ -694,15 +659,7 @@ export default function HomePage() {
           </div>
 
           {/* Step 3 */}
-          <div
-            style={{
-              backgroundColor: "#ffffff",
-              border: "1px solid #e2e8f0",
-              borderRadius: "14px",
-              padding: "2rem",
-              position: "relative",
-            }}
-          >
+          <div className="step-card">
             <div
               style={{
                 width: "42px",
@@ -732,14 +689,7 @@ export default function HomePage() {
 
       {/* 5. WHY CHOOSE US / TRUST SECTION */}
       <section id="why-us">
-        <div
-          style={{
-            backgroundColor: "#ffffff",
-            border: "1px solid #e2e8f0",
-            borderRadius: "16px",
-            padding: "3.5rem 2.5rem",
-          }}
-        >
+        <div className="why-us-card">
           <div style={{ maxWidth: "600px", marginBottom: "2.5rem" }}>
             <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#2563eb", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.35rem" }}>
               Enterprise Reliability
@@ -749,13 +699,7 @@ export default function HomePage() {
             </h2>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: "2rem",
-            }}
-          >
+          <div className="why-us-grid">
             <div>
               <div style={{ fontWeight: 700, fontSize: "1.05rem", color: "#0f172a", marginBottom: "0.4rem" }}>
                 Zero Double-Booking Guarantee
@@ -787,15 +731,7 @@ export default function HomePage() {
       </section>
 
       {/* 6. CALL TO ACTION SECTION */}
-      <section
-        style={{
-          backgroundColor: "#0f172a",
-          borderRadius: "16px",
-          padding: "3.5rem 2rem",
-          textAlign: "center",
-          color: "#ffffff",
-        }}
-      >
+      <section className="cta-banner">
         <div style={{ maxWidth: "600px", margin: "0 auto" }}>
           <h2 style={{ fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: "1rem" }}>
             Ready to Schedule Your Appointment?

@@ -277,7 +277,7 @@ export default function CustomerBookingsPage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 140px), 1fr))",
           gap: "1rem",
           marginBottom: "2rem",
         }}
@@ -313,6 +313,7 @@ export default function CustomerBookingsPage() {
           paddingBottom: "0.75rem",
           marginBottom: "1.5rem",
           borderBottom: "1px solid #e2e8f0",
+          WebkitOverflowScrolling: "touch",
         }}
       >
         {filterTabs.map((tab) => {
@@ -770,23 +771,6 @@ export default function CustomerBookingsPage() {
           </div>
         </div>
       )}
-
-      <style jsx global>{`
-        .desktop-bookings-table {
-          display: block;
-        }
-        .mobile-bookings-cards {
-          display: none;
-        }
-        @media (max-width: 768px) {
-          .desktop-bookings-table {
-            display: none;
-          }
-          .mobile-bookings-cards {
-            display: block;
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -47,6 +47,19 @@ export default function AdminLayout({
     }
   }, [isUserLoading, user, pathname, router]);
 
+  // Close mobile drawer automatically when route/pathname changes or back button is pressed
+  useEffect(() => {
+    setMobileDrawerOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setMobileDrawerOpen(false);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   // Handle Escape key for mobile drawer (Must be unconditional before any return)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -102,13 +115,6 @@ export default function AdminLayout({
         <p style={{ fontSize: "0.9rem", color: "#64748b", fontWeight: 600 }}>
           Authenticating admin access...
         </p>
-        <style jsx global>{`
-          @keyframes spin {
-            to {
-              transform: rotate(360deg);
-            }
-          }
-        `}</style>
       </div>
     );
   }
@@ -756,164 +762,6 @@ export default function AdminLayout({
           {children}
         </main>
       </div>
-
-      <style jsx global>{`
-        .admin-root-container {
-          display: flex;
-          flex-direction: column;
-          min-height: 100vh;
-          background-color: #f8fafc;
-        }
-        .admin-topbar {
-          height: 60px;
-          background-color: #0f172a;
-          color: #ffffff;
-          display: flex;
-          align-items: center;
-          justifyContent: space-between;
-          padding: 0 1.75rem;
-          position: sticky;
-          top: 0;
-          z-index: 50;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-        }
-        .admin-topbar-link-hover:hover {
-          background-color: rgba(255, 255, 255, 0.1) !important;
-          color: #ffffff !important;
-          border-color: rgba(255, 255, 255, 0.2) !important;
-        }
-        .admin-topbar-logout-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-          background-color: rgba(239, 68, 68, 0.1);
-          border: 1px solid rgba(239, 68, 68, 0.25);
-          color: #f87171;
-          font-size: 0.8rem;
-          font-weight: 600;
-          padding: 0.38rem 0.75rem;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.15s ease;
-        }
-        .admin-topbar-logout-btn:hover:not(:disabled) {
-          background-color: rgba(239, 68, 68, 0.2);
-          color: #fca5a5;
-          border-color: rgba(239, 68, 68, 0.4);
-        }
-        .admin-topbar-logout-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-        .admin-topbar-menu-btn {
-          display: flex;
-          align-items: center;
-          justifyContent: center;
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          color: #ffffff;
-          cursor: pointer;
-          padding: 0.35rem;
-          border-radius: 6px;
-          transition: all 0.15s ease;
-        }
-        .admin-topbar-menu-btn:hover {
-          background: rgba(255, 255, 255, 0.15);
-        }
-        .admin-sidebar-close-btn:hover {
-          background-color: #f1f5f9 !important;
-          color: #0f172a !important;
-        }
-        .admin-layout-wrapper {
-          display: flex;
-          flex: 1;
-          min-height: calc(100vh - 60px);
-        }
-        .admin-desktop-sidebar {
-          width: 260px;
-          min-width: 260px;
-          flex-shrink: 0;
-          background-color: #ffffff;
-          border-right: 1px solid #e2e8f0;
-          position: sticky;
-          top: 60px;
-          height: calc(100vh - 60px);
-          overflow-y: auto;
-          overflow-x: hidden;
-          transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                      min-width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .admin-desktop-sidebar.collapsed {
-          width: 72px !important;
-          min-width: 72px !important;
-          max-width: 72px !important;
-          border-right: 1px solid #e2e8f0 !important;
-          opacity: 1 !important;
-          pointer-events: auto !important;
-          transform: none !important;
-        }
-        .admin-desktop-sidebar.open {
-          width: 260px;
-          min-width: 260px;
-          opacity: 1;
-          transform: none;
-        }
-        .admin-sidebar-toggle-btn:hover {
-          background-color: #e2e8f0 !important;
-          color: #0f172a !important;
-        }
-        .admin-user-card-link:hover {
-          background-color: #eff6ff !important;
-          border-color: #bfdbfe !important;
-          box-shadow: 0 1px 4px rgba(37, 99, 235, 0.08);
-        }
-        .admin-collapsed-user-avatar:hover {
-          background-color: #1d4ed8 !important;
-          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35) !important;
-        }
-        .admin-topbar-user:hover {
-          background-color: rgba(255, 255, 255, 0.12) !important;
-          border-color: rgba(255, 255, 255, 0.22) !important;
-        }
-        .admin-content-area {
-          flex: 1;
-          padding: 2rem 2.5rem;
-          max-width: 1400px;
-          min-width: 0;
-        }
-        .admin-mobile-drawer-backdrop {
-          position: fixed;
-          inset: 0;
-          z-index: 1000;
-          background-color: rgba(15, 23, 42, 0.6);
-          backdrop-filter: blur(4px);
-        }
-        .admin-mobile-drawer-panel {
-          position: fixed;
-          top: 0;
-          bottom: 0;
-          left: 0;
-          width: 280px;
-          background-color: #ffffff;
-          z-index: 1001;
-          box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
-        }
-        @media (max-width: 1024px) {
-          .admin-desktop-sidebar {
-            display: none !important;
-          }
-          .admin-topbar-menu-btn {
-            display: flex;
-          }
-          .admin-content-area {
-            padding: 1.25rem 1rem;
-          }
-          .admin-topbar-user {
-            display: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

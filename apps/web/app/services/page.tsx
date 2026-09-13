@@ -242,6 +242,11 @@ export default function ServicesCatalogPage() {
       result = [...result].sort((a, b) => Number(b.price) - Number(a.price));
     } else if (sortBy === "name") {
       result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+    } else {
+      // Default: Newest first (latest added services at the top)
+      result = [...result].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
     }
 
     return result;
@@ -332,7 +337,7 @@ export default function ServicesCatalogPage() {
         }}
       >
         {/* Search Input */}
-        <div style={{ position: "relative", flex: 1, minWidth: "240px" }}>
+        <div style={{ position: "relative", flex: 1, minWidth: "min(100%, 220px)" }}>
           <div
             style={{
               position: "absolute",
@@ -409,7 +414,7 @@ export default function ServicesCatalogPage() {
             onChange={(e) => setSortBy(e.target.value)}
             style={{ height: "42px" }}
           >
-            <option value="default">Sort: Default</option>
+            <option value="default">Sort: Newest First</option>
             <option value="price-asc">Price: Low to High</option>
             <option value="price-desc">Price: High to Low</option>
             <option value="name">Alphabetical (A-Z)</option>
@@ -523,7 +528,7 @@ export default function ServicesCatalogPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
             gap: "1.5rem",
           }}
         >

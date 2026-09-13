@@ -107,18 +107,16 @@ export default function RegisterPage() {
         style={{
           borderRadius: "20px",
           overflow: "hidden",
-          display: "grid",
-          gridTemplateColumns: "1fr 1.15fr",
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(226, 232, 240, 0.8)",
           backgroundColor: "#ffffff",
         }}
       >
         {/* LEFT: Premium Brand & Value Proposition */}
         <div
+          className="auth-split-banner"
           style={{
             background: "linear-gradient(150deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)",
             color: "#ffffff",
-            padding: "3.5rem 2.5rem",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -193,7 +191,7 @@ export default function RegisterPage() {
         </div>
 
         {/* RIGHT: Registration Form */}
-        <div style={{ padding: "3.5rem 3rem", backgroundColor: "#ffffff" }}>
+        <div className="auth-split-form" style={{ backgroundColor: "#ffffff" }}>
           <div style={{ marginBottom: "2rem" }}>
             <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#0f172a", marginBottom: "0.35rem", letterSpacing: "-0.02em" }}>
               Create Your Account
@@ -419,33 +417,6 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        .auth-password-toggle {
-          position: absolute;
-          right: 0.75rem;
-          top: 50%;
-          transform: translateY(-50%);
-          background: transparent;
-          border: none;
-          padding: 0.25rem;
-          display: flex;
-          align-items: center;
-          justifyContent: center;
-          cursor: pointer;
-          color: #94a3b8;
-          border-radius: 4px;
-          transition: color 0.15s ease;
-        }
-        .auth-password-toggle:hover {
-          color: #0f172a;
-        }
-        @media (max-width: 850px) {
-          .auth-split-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

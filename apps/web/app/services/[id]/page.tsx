@@ -313,7 +313,7 @@ function TimeSlotPicker({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 110px), 1fr))",
             gap: "0.65rem",
           }}
         >
@@ -751,15 +751,7 @@ export default function ServiceDetailsPage({ params }: PageProps) {
 
       {/* Main Service Content */}
       {!isServiceLoading && !isServiceError && service && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) 380px",
-            gap: "2.5rem",
-            alignItems: "start",
-          }}
-          className="service-details-grid"
-        >
+        <div className="service-details-grid">
           {/* LEFT: Service Info & Booking Step Selectors */}
           <div style={{ display: "flex", flexDirection: "column", gap: "2.5rem" }}>
             {/* Header & Overview Card */}
@@ -1151,14 +1143,6 @@ export default function ServiceDetailsPage({ params }: PageProps) {
           </div>
         </div>
       )}
-
-      <style jsx global>{`
-        @media (max-width: 900px) {
-          .service-details-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

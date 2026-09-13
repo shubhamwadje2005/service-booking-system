@@ -17,7 +17,7 @@ export default function Footer() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))",
             gap: "2.5rem",
             paddingBottom: "3rem",
             borderBottom: "1px solid #f1f5f9",
@@ -198,7 +198,7 @@ export default function Footer() {
           <div>
             &copy; {new Date().getFullYear()} ProService Systems Inc. All rights reserved.
           </div>
-          <div style={{ display: "flex", gap: "1.5rem" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem 1.5rem" }}>
             <span>PostgreSQL & Drizzle ORM</span>
             <span>Next.js App Router</span>
             <span>TypeScript Enterprise</span>

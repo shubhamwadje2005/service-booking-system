@@ -289,11 +289,7 @@ The backend automatically seeds an initial Administrator account on startup if n
 
 ## 15. Documentation Index
 
-For in-depth technical details, consult the dedicated documentation files:
-* [API Specification](docs/API.md)
-* [System Architecture](docs/ARCHITECTURE.md)
-* [Booking Business Logic](docs/BOOKING-LOGIC.md)
-* [Database Schema](docs/DATABASE.md)
-* [Entity Relationship Diagram](docs/ER-DIAGRAM.md)
-* [Development Roadmap](docs/DEVELOPMENT.md)
+For in-depth technical details, consult the comprehensive master documentation files:
+* [Backend Architecture & Technical Specification](docs/BACKEND.md) — Database design (PostgreSQL & Drizzle ORM), 17-step booking engine, collision prevention algorithm, complete REST API specification, RBAC middleware, and setup guide.
+* [Frontend Architecture & Technical Specification](docs/FRONTEND.md) — Next.js 16 App Router breakdown of all 14 pages, Redux Toolkit Query cache architecture, Vanilla CSS design system, Fixed Viewport admin console, and workflows.
 

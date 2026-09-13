@@ -72,7 +72,7 @@ export const getServices = async (
       .select()
       .from(services)
       .where(and(...conditions))
-      .orderBy(asc(services.name));
+      .orderBy(desc(services.createdAt));
 
     const formatted = rows.map(formatService);
 

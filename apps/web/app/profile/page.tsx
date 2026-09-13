@@ -76,7 +76,7 @@ export default function ProfilePage() {
         className="card"
         style={{
           borderRadius: "16px",
-          padding: "2.5rem",
+          padding: "clamp(1.5rem, 4vw, 2.5rem)",
           boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
         }}
       >
@@ -88,6 +88,7 @@ export default function ProfilePage() {
             gap: "1.25rem",
             paddingBottom: "2rem",
             borderBottom: "1px solid #e2e8f0",
+            flexWrap: "wrap",
           }}
         >
           <div
@@ -109,7 +110,7 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
               <h1 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>
                 {user.name}
               </h1>
@@ -128,7 +129,7 @@ export default function ProfilePage() {
                 {user.role}
               </span>
             </div>
-            <p style={{ color: "#64748b", fontSize: "0.92rem", margin: "0.25rem 0 0" }}>
+            <p style={{ color: "#64748b", fontSize: "0.92rem", margin: "0.25rem 0 0", wordBreak: "break-all" }}>
               {user.email}
             </p>
           </div>
@@ -152,15 +153,15 @@ export default function ProfilePage() {
               fontSize: "0.92rem",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
               <span style={{ color: "#64748b", display: "flex", alignItems: "center", gap: "0.4rem" }}>
                 <Mail size={15} />
                 <span>Email Address</span>
               </span>
-              <span style={{ fontWeight: 600, color: "#0f172a" }}>{user.email}</span>
+              <span style={{ fontWeight: 600, color: "#0f172a", wordBreak: "break-all" }}>{user.email}</span>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
               <span style={{ color: "#64748b", display: "flex", alignItems: "center", gap: "0.4rem" }}>
                 <Shield size={15} />
                 <span>Account Role</span>
@@ -168,7 +169,7 @@ export default function ProfilePage() {
               <span style={{ fontWeight: 600, color: "#0f172a" }}>{user.role}</span>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
               <span style={{ color: "#64748b", display: "flex", alignItems: "center", gap: "0.4rem" }}>
                 <Calendar size={15} />
                 <span>Member Since</span>

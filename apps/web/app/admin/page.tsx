@@ -281,7 +281,7 @@ export default function AdminDashboardPage() {
       {/* Loading Skeleton (Matching Reference) */}
       {isStatsLoading && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))", gap: "1rem" }}>
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
@@ -358,7 +358,7 @@ export default function AdminDashboardPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))",
               gap: "1.25rem",
             }}
           >

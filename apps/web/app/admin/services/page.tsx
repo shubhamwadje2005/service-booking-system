@@ -681,7 +681,7 @@ export default function AdminServicesPage() {
           boxShadow: "0 1px 3px rgba(0, 0, 0, 0.03)",
         }}
       >
-        <div style={{ position: "relative", flex: 1, minWidth: "220px" }}>
+        <div style={{ position: "relative", flex: 1, minWidth: "min(100%, 200px)" }}>
           <div
             style={{
               position: "absolute",
